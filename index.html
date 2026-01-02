@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BanhomDev Logistics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="icon" type="image/png" href="https://yt3.ggpht.com/hwhkHWWiLoru-CSsqJjevgGzThs5wtRq-hyL5MDMPqQmVXXwMFLuhPXqcSITyHled3tDBycIhQ=s88-c-k-c0x00ffffff-no-rj">
+
+<link rel="apple-touch-icon" href="https://yt3.ggpht.com/hwhkHWWiLoru-CSsqJjevgGzThs5wtRq-hyL5MDMPqQmVXXwMFLuhPXqcSITyHled3tDBycIhQ=s180-c-k-c0x00ffffff-no-rj">
+    <style>
+      
+      
+        body { font-family: 'Noto Sans Lao', sans-serif !important;; background-color: #f8fafc; }
+        .hidden-el { display: none !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .loader-ring {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+          /* Custom SweetAlert Styles */
+        .swal2-popup {
+            border-radius: 2rem !important;
+            padding: 2rem !important;
+        }
+        .swal2-title {
+            font-family: 'Noto Sans Lao', sans-serif !important;
+            font-weight: 600 !important;
+        }
+        .swal2-confirm {
+            border-radius: 1rem !important;
+            padding: 0.8rem 2rem !important;
+            font-weight: 500 !important;
+        }
+        .swal2-cancel {
+            border-radius: 1rem !important;
+            padding: 0.8rem 2rem !important;
+        }
+
+
+
+
+ 
+        /* กล่องควบคุมความสูงและขอบมน */
+    .slider-container { 
+        width: 100%; 
+        height: 220px; 
+        position: relative; 
+        overflow: hidden; 
+        border-radius: 2rem; 
+        background-color: #e2e8f0; 
+    }
+
+    /* แถบสำหรับวางรูปเรียงกัน และตั้งค่าแอนิเมชันการเลื่อน */
+    .slider-track { 
+        display: flex; 
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+        height: 100%; 
+        width: 100%; 
+    }
+
+    /* จัดขนาดรูปแต่ละใบให้เต็มพื้นที่ */
+    .slider-item { 
+        min-width: 100%; 
+        height: 100%; 
+        position: relative; 
+    }
+
+    .slider-item img { 
+        width: 100%; 
+        height: 100%; 
+        object-fit: cover; /* บังคับให้รูปเต็มกรอบโดยไม่เสียสัดส่วน */
+    }
+
+        /* กล่องควบคุมความสูงและขอบมน */
+
+
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .tab-content { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .status-badge-active { background-color: #3b82f6 !important; color: white !important; }
+        .detail-img-container { width: 100%; height: auto; max-height: 700px; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-24">
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/50 hidden-el">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center">
+            <div class="loader-ring mb-4"></div>
+            <p id="progressLabel" class="text-blue-600 font-bold text-2xl">0%</p>
+            <p class="text-gray-500 text-sm mt-2">ກຳລັງໂຫຼດ...</p>
+        </div>
+    </div>
+
+    <!-- Login Page -->
+    <div id="loginPage" class="min-h-screen flex items-center justify-center p-6">
+        <div class="w-full max-w-md bg-white rounded-[2rem] shadow-xl p-8 text-center border border-gray-100">
+            <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
+                <img src="data:image/jpeg;base64,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" alt="Logo" class="w-full h-full object-cover rounded-full">
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">ລະບົບຕິດຕາມເຄື່ອງ</h1>
+            <p class="text-gray-400 mb-8 text-sm"> BanhomDev ຮັບສັ່ງເຄື່ອງ</p>
+
+            
+            
+            <div class="space-y-4">
+                <div class="relative">
+                    <input type="text" id="loginPhone" maxlength="8" placeholder="ເບີໂທ 8 ໂຕເລກ" 
+                           class="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                    <i class="fas fa-mobile-alt absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <div class="relative">
+                    <input type="password" id="loginPassword" placeholder="ລະຫັດຜ່ານ" 
+                           class="w-full pl-12 pr-12 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                    <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <button onclick="togglePassword('loginPassword')" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+                <button onclick="handleLogin()" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-semibold text-lg hover:bg-blue-700 transition-all shadow-lg active:scale-[0.98]">
+                    ເຂົ້າສູ່ລະບົບ
+                </button>
+            <p class="text-gray-400 mb-8 text-sm">  ມີລະບົບຈົດຈຳເຂົ້າລະບົບ 15 ວັນ </p>
+
+            </div>
+        </div>
+    </div>
+  <!-- Mandatory Password Change Page -->
+    <div id="newPasswordPage" class="min-h-screen flex items-center justify-center p-6 hidden-el">
+        <div class="w-full max-w-md bg-white rounded-[2rem] shadow-xl p-8 text-center">
+            <i class="fas fa-shield-halved text-5xl text-blue-500 mb-4"></i>
+            <h2 class="text-xl font-bold mb-2">ຕັ້ງລະຫັດຜ່ານໃໝ່</h2>
+            <p class="text-gray-500 text-sm mb-6">ເພື່ອຄວາມປອດໄພໃນການຮັບບິນ, ທ່ານຈຳເປັນຕ້ອງປ່ຽນລະຫັດເຂົ້າລະບົບຄັ້ງແລກ ເພື່ອບໍ່ໃຫ້ຄືກັບຄົນອື່ນ <strong>(ລະຫັດຜ່ານຢ່າງນ້ອຍ 5 ຕົວເລກ ແລະ ບໍ່ສາມາດໃສ່ເລກລຽງກັນໄດ້ ເຊັ່ນ 12345)</strong></p>
+            <div class="space-y-4">
+                <input type="password" id="newPass1" placeholder="ລະຫັດຜ່ານໃໝ່" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="password" id="newPass2" placeholder="ຢືນຢັນລະຫັດຜ່ານໃໝ່" class="w-full p-4 bg-gray-50 border rounded-2xl outline-none focus:ring-2 focus:ring-blue-500">
+                <button onclick="confirmNewPassword()" class="w-full py-4 bg-green-600 text-white rounded-2xl font-bold shadow-lg">ຢືນຢັນປ່ຽນລະຫັດ</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- App Main UI -->
+    <div id="mainUI" class="hidden-el">
+        <!-- Header -->
+        <header class="fixed top-0 left-0 right-0 h-16 bg-white shadow-sm flex items-center justify-between px-6 z-50">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center shadow-md shadow-blue-100">
+                                   <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBhIQBxAKFhUXGR4YFhgVFxUdIBshIRkiHiAgIh0fHSwsGB4mGxsYLTEjKikrLi8uGiA/ODctOCgtLisBCgoKDQ0OGhAQFzAkICItMjgzMyswLTc3Ny8rLjI3Ky8yNy0vLTMtLSsrMy8vKy8yLy0tMi8vLS0tLS0tLy0tLf/AABEIAOEA4QMBEQACEQEDEQH/xAAbAAEAAQUBAAAAAAAAAAAAAAAABgEDBAUHAv/EADgQAAIBAwMBBgQEBQMFAAAAAAABAgMFEQQGEiEHEzFBUXEiYYGRFDKhsjZCcoKxFVJiIzdzs8H/xAAbAQEAAwEBAQEAAAAAAAAAAAAAAQQFAwIGB//EADIRAQACAgECAwYFBAIDAAAAAAABAgMEEQUhEjFBE1FhcbHBgZHR4fAiMzShFPEVMnL/2gAMAwEAAhEDEQA/ANSfoD40AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoEgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADISZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAZAoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHkJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAeSEuibY2DbbxYaOo1FXWKU021F08dJNdMwfp6mFt9Uy4c1sdaxxHz/AFauvoY8mOLzM92w1PZboHSf4XU6tS8nNQkvslH/ACca9by8/wBVI/Dn93W3S8fHa0ucXm2amz3KdDWJco+a8Gn1TXyaN7BnrmxxevlLJy4rYrzSzCydXMyAyAyAyBKOzy06G832VK5Q5wVKUkuUl1UorOYtPwbM7qefJhwxbHPE8/aVzSw0y5JreO3B2iWnQ2W+QpW2HCDpRk1yk+rnNZzJvySHTM+TNhm2SeZ5+0G9hpiyRFI4jhF8mipmQGQGQGQGQGQGQJ9s/Y9vv1jjX1VXVxk5SWIOGOjx5xZi7vU8uDNNKxHHx5/Vp6ujjy44tMy22o7Lbe6b/DanVqXk5qEl9ko/5K1et5ef6qR/v93e3S8fHa0oJuTbVw27XS1ii4S/JUjni/l/xljyf0ybGru49iP6fP3M3PrXwz/V5e9psltXMgMgMgMgMgMgUA7l2ffwdpv6ZfvkfH9R/wAm/wDPR9Hpf2KtR2cbevFjlVd0+GEklGnzUuufzdG0un3+hZ6ntYM8V9n3mPXhw0NfLi58f5IX2jXHTXLc8paRxlGEY0+S8G1lvD88OWPoa3S8VsevEW9Z5UN7JW+b+n0WrJsu93nTKrp4U4Qf5ZVZOPL2STePnjB6z9R18NvDM8z8HnFpZckcxHEfFfn2f7hjqu7VOk+mVNTXF4aWM+T6+DS8/Q8R1XW8Pi5n5cd3r/x+fxccNZr9u3HQXinpNSqfe1OPFKSa+KTiuvl1TLGPbxZMU5a+UfZxvr5KXjHPnLY19g7iozgu6pvk8fDNPHTOW/JdPH29ThXqutMTPPl8HWdDPHHZ71/Z9uDRadzUKFTHVqlJt/ZxWfZZZGPqute3HMx8030M1Y58/ky+yT+J5/8Agl++By6z/Yj/AOo+kvfTf7s/L7w3O/NtXTcG6I/6fCPFUYpzm8RT5z6Zw8v5JPy9Sr07dw6+CfHPfxT2j5QsbmtkzZo8Men6ohfdn3mx0O81cISgvGdN8kvfKTXvjBqa/UMGefDWeJ90qObTy4o5mO3wam36DV3LVKloKc5zflH/AC34JfN9Czly0xV8V54hwpjtefDWOZSiPZtuB08v8En/ALXN5/SOP1M6esa3PHf8v3XP/HZuPRG7ratdaNT3dypzhLxWcYa9U10f0L+HPjzV8WOeVTJhvjni8cNtp9k3vU2xaijCk4Sh3ixL4msZ/Ljq8eRWt1LXrk9nMzzzw710s1qeOI7Mqj2dbhqabm46aLxnhKfxfomv1Odur60W47/Ph7jp2aY57MC17Qvdz1U6dKi4Om+M3UfFJ+OM9eXTD6J9GvVHbN1DXxVi02558uHPHqZbzMRHHHveb/tS7WCmp66EHBvHODys+j6Jr6onW3sOxPFJ7+6UZtTLijm0dnS+y7+EYf1z/czA6t/kz8o+jX6f/Yj8XP6u6rzadxV5UK9aUVWmu7nJyi0pvph/l6eawbUaODNgrE1iJ4jvHn5MydrLjyzMT258nVNVQ0u6ds4a+GtTUo58YtrKfvF/4PnKWvq5/jWf5+bZtFc+L4TDiFstWvumr7nQ0pyn5pY6erbfSKz6n12XPjxV8d54h87jxXyW8NY7pJU7N9wQo8o/g5P/AGqo8/rFL9SjHWNaZ47/AJLc9OzRHPZpbdt25XC5z01KEY1YLMoVHxfl6+Pivoy1l28WPHGSZ5rPrCvj18l7zSI7x7y/bduVg4f6lGC554uLTXTGfZ9UNfbxbHPgnyM2vkw8eP1XLFta637TyqW+FNxjLi3KSXXGenr0a+552N7DgtFbz3lOHVyZY5rDBu9t1Fo10qGs7vnHGVF5xlZxn1xj7o7YM1c1PHXy+LnlxWx28NvNhnZzCEu5dnv8Hab2l++R8h1H/Jv/AD0fRaX9iqP7a7RK91u9PT6zT0kqj4qUJPo8dMp+K+pd2ulRixTetvL3q2v1Ccl4ravmyd7bXt+p1+kq04Qi514U6vFYU4y69cfzdMZ/5fJHPR3claXrM88VmY+Eve1q0tatuPXiW23ve623bCqmijDk5KnHK6Rym849ovHzaK2hrV2M3htPbjl22804cfNYaTs73bcb3rqlC58JNQ5xmopeEkmnjp/MsdPJ+Jb6no4sFIvj9/HCvpbd8tprdhbw/wC5+h9qP/tmdtL/AAMn4/SHPZ/y6fh9ZSLtEvmrsVljK3uKnOahyaT4ri22k+menn6lHputTPl4v5RHK1u5rYsfNfOVrs3vmuvdqqO5SUpQnxUsJNppPql0yuvX2PXU9bHgyR7OOImEaOa+Wk+L0lpdpU4Uu0/WxppJcajx71IP/LLW5MzoY5n3x9JV9eIjbvx8fsu9pG6bpaLlToWyap/AqkpJRbeZSSXxJ4S4/qR0vSxZqTfJHPfhO9tZMdorTt2SW1ayV72dGprVFupSlzXk+jT6fPBn5scYNma19J7LmO/tcMTb1hquyrQUaG141opc6spOT88Rk4peyw3/AHMs9XyWtsTT0r93Dp+OIxeL1lFrh2jXijeZukqKpQm13bj4pPHWXipPHsvQ0MXSMFsUc88zHmqX6hljJPHlHom2/wDRULjtKrOqusI95BvxTXX9VlfUyunZLY9msR6zxK/uUi+GZn07rli1EtHsOjVgk3DTKaT88U8//DzsU8e3avvt93rDbw68T7o+yOdnG6rtebvUo3OcZru3OL4xXFqUVhcUsr4vP0L3U9LDhxxfHHHfhU0drJlvNbz6K9o+6btZbxSpWypGC7tVJfDF8m5SWHlPCxHyx4jpmlhzYrWyRz34N7ayYrxWk+iQ7kqLX7DrVKsY/FQ7zHo+Kkvs8fYo6sez261j0twtZ58evMz6wxey7+EIf1z/AHM69W/yZ+UfR40P7Efi5TdKNbVbjr09NGUpyr1FGK8W+bPo8Nq0wVtaeIisfRjZKzbLasefMu22ulCwbapx1clijS+N+XSOZfrk+Sy2nPnmax/7T2+z6DHHssURPpDV9nGlpUdtRrJR51pSqTfz5NJeyS8PXPqWOp3mc809K8RH5OOlWIxeL392HoK+h0t17+rfadRNvlTlVpcGn5KPLEcdMY9Pc6ZK5LY/BGtx8eJ5eazSt/FObn4cxw1G/bzoKF20etslbS1KtNtTVOcXmPTCeH0TTmv7i107XyWx5MOWsxE++PX+cK+5lpF6ZMcxMx7kl3Po6W7doctB8TcVVo+uUvy/Jtco/Jv5FDVyTqbPF/lP8/2t56RsYf6fnC5S/D7K2au84t04df8AnUl5fWb+i9jzPi3drt6z+Uf9Jjw62D5fVxPU6irq9TOpqHmU25Sfq28s+tpStKxWsdofPWtNpm0+crZ6Q8gdg2RuGzaPaunp6vVaSE4p5jKcU18bfh7HzG/q577FrVpMx8vg3dTPirhrE2h7t1TYdnrd7oalujJeEubm17Zba6eh5yx1DNHhvFuPlwmn/DxzzWYRXfO9oXTUUYWblwpTVVTkmuU4/lwn14rr4+Ofl10dDp04q2nL52jjj4T5qW3ueOYinlE8phodz7c3PaeFznpo8l/1KVaSjh/JtrPXqmuvszMyaezrZOaRM8eUwvU2cGenF+I+ErdouWy7Dq5UbZU0sHJcpz5uS6NJR7yTeX1eIp+T8POc2Lez1i+SJnj04+33RjyauK3hpMR/PejG6brb9T2haOtp61CVOPdcpxknFYqSby/LCa+5oamDJXSyUms8zz2/CFTYyUnZpaJ7Rx9WZ2o3m2XKz0Y2+vp6klVy1CSbS4SWenllo59JwZceW03rMdvX5w6dQy4744itonu8dlt4tttt1eNwr6em3NNKcksrj8yerYMuTJWaVme3p80dPy0pSYtPHdb29d7dp+0bWV61ehGlKM1GbkuLzKGMPz8H9idnBltpY6RWeYmO35ow5aRtXtM9v+mq7Trho7juCE9BVpVIqjGLcGms85vHTzw19yz0rFfHhmLxxPPr8ocN+9b5Yms89v1S/au4LPptm0qWo1OljNU5Jxc0mnl+Rmbmrnts2tWkzHPuXtfPjrgiJtHPCOdne8tPZqD011clTbzCaTfFvxTS68W+uV4Nv6Xup9Ptmn2mPz9Y96rpbcY48F/JLamm2NqNd+LqVLW555N98km/Vw5Yb914mZF9+tPZRFuPl9+F2a6k29pzHPzR3tA3tpdfonpLO3KMmu8qdUsJ54x9ctdX4Y9c9L/TunXpf2uXtx5R95Vd3crevs6fjLb6K/2eGwY0Z6nSqp+FcOHNZ5d3jGPXPkVcmtmnbm3gnjxefHxd6Z8X/H48Uc8fZEOzHX6O3bgnPX1KVOPcyWZtJZ5weOvnhP7Gp1XHfJhiKRzPPp8pUOn3rTJzaeO36HafcNHctwQnoKtKpFUYxbg01nnN46eeGvuR0nFfHhmLxxPPr8oOoXrfJE1nnt+qX3C/2eew5UYanSup+GUeCms8u7Sxj1yZmPVzRtxaaTx4vPj4r98+Odfw+KOePstdnd+tOg2xCnrdTpYTUpvjKaT6y6dD11LWzZNibUpMx28o+CNLNjrhiLWiG4W4Nn22UqtCrboyllydKMXKTfXrwWX1K3/F3cnFZrbt7/3dvb61OZiY/BA97b4lfafcW+M4Uc/E5fmnjw6fyxz5eL6eHgbGh02ME+O/e30/dnbW77WPDXyZnZ5vPTWrTfhbs3GGW6c8NqOXlxePBZy8/N5OXUun3y29rj7z6w96W3XHHgv5eiQO2bCp6v8AEupb855Y75OOfH8nLD9sY+RS9t1Ca+z4n8vvwtez04t4+Y/Nz7eWtsutuubBSUIL80kmlN+qh/Kvos58Da0ceemPjNbmfp+Pqy9q+K1+ccJH2Zbo09vpVNLdKkIQ/PTlN4Sf80c+WfFf3FHqulbJMZMccz5Tx/qf58FvQ2YrE0vPEejD7S9yUrvrYUNBOMqVP4nKLypTa/VRi8e7kdelak4qze8cTP0/dz39iMlorWe0fVCjWZ4BQJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADyQkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoEgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPOQGQGQGQGQGQGQGQGQGQGQGQGQGQGQGQGQGQGQGQGQGQGQGQGQGQGQGQGQASAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACgSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUISAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//9k=" alt="Logo" class="w-full h-full object-cover rounded-full">
+
+                </div>
+                <span class="font-bold text-gray-800 text-lg tracking-tight">BanhomDev ຮັບສັ່ງເຄື່ອງ</span>
+            </div>
+            <button onclick="refreshData()" class="w-10 h-10 flex items-center justify-center text-blue-600 hover:bg-blue-50 rounded-full transition-colors">
+                <i class="fas fa-rotate text-xl"></i>
+            </button>
+        </header>
+
+        <!-- Content -->
+        <main class="pt-20 px-4 pb-24">
+            <!-- Tab: Home -->
+            <section id="tab-home" class="tab-content">
+                <!-- Image Slider -->
+                   <div class="slider-container mb-8 shadow-xl">
+                      
+                          <div id="photoSlider" class="slider-track"></div>
+                          
+                        
+                          <div id="sliderDots" class="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 z-10"></div>
+                      </div>
+
+                <!-- Stats Blocks -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div onclick="switchTab('thailao')" class="bg-gradient-to-br from-blue-600 to-blue-700 p-5 rounded-3xl text-white shadow-lg shadow-blue-100">
+                        <p class="text-xs font-light opacity-80 mb-1">ລາຍການ ໄທ-ລາວ</p>
+                        <h3 id="statThai" class="text-2xl font-bold">0 ລາຍການ</h3>
+                    </div>
+                    <div onclick="switchTab('chinalao')" class="bg-gradient-to-br from-indigo-600 to-indigo-700 p-5 rounded-3xl text-white shadow-lg shadow-indigo-100">
+                        <p class="text-xs font-light opacity-80 mb-1">ລາຍການ ຈີນ-ລາວ</p>
+                        <h3 id="statChina" class="text-2xl font-bold">0 ລາຍການ</h3>
+                    </div>
+                </div>
+
+                <!-- Grid Menu -->
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="switchTab('thailao')" class="p-6 bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center gap-3 active:scale-95 transition-transform">
+                        <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-xl">
+                            <img src="https://images.rawpixel.com/image_png_social_landscape/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTA1L2pvYjkzNy04MC5wbmc.png" alt="Thai Flag" class="w-full h-full object-cover rounded-2xl">
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">ໄທ-ລາວ</span>
+                    </button>
+                    <button onclick="switchTab('chinalao')" class="p-6 bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center gap-3 active:scale-95 transition-transform">
+                        <div class="w-12 h-12 bg-indigo-50 text-indigo-500 rounded-2xl flex items-center justify-center text-xl">
+               <img src="https://i.etsystatic.com/25240952/r/il/0ec8c0/2891544897/il_fullxfull.2891544897_tli0.jpg" alt="Thai Flag" class="w-full h-full object-cover rounded-2xl">
+
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">ຈີນ-ລາວ</span>
+                    </button>
+                    <button onclick="window.open('https://www.youtube.com/@BanhomDev', '_blank')" class="p-6 bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center gap-3 active:scale-95 transition-transform">
+    <div class="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center text-2xl">
+        <i class="fab fa-youtube"></i>
+    </div>
+    <span class="text-sm font-semibold text-gray-700">Youtube</span>
+</button>
+                    <button onclick="openChangePassModal()" class="p-6 bg-white rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center gap-3 active:scale-95 transition-transform">
+                        <div class="w-12 h-12 bg-orange-50 text-orange-500 rounded-2xl flex items-center justify-center text-xl">
+                            <i class="fas fa-key"></i>
+                        </div>
+                        <span class="text-sm font-semibold text-gray-700">ປ່ຽນລະຫັດຜ່ານ</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Tab: Logistics (Combined Thai/China) -->
+            <section id="tab-logistics" class="tab-content hidden-el">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 id="logTitle" class="text-xl font-bold text-gray-800">ໄທ-ລາວ</h2>
+                </div>
+                
+                <!-- Filter Badges -->
+                <div class="flex gap-2 overflow-x-auto pb-4 no-scrollbar mb-2">
+                    <button onclick="filterByStatus('ທັງໝົດ')" id="btn-all" class="status-btn px-4 py-2 bg-white text-gray-500 rounded-full text-xs font-semibold whitespace-nowrap shadow-sm border border-gray-100">ທັງໝົດ (0)</button>
+                    <button onclick="filterByStatus('ກຳລັງຈັດສົ່ງ')" id="btn-ship" class="status-btn px-4 py-2 bg-white text-gray-500 rounded-full text-xs font-semibold whitespace-nowrap shadow-sm border border-gray-100">ກຳລັງຈັດສົ່ງ (0)</button>
+                    <button onclick="filterByStatus('ຮອດປາຍທາງແລ້ວ')" id="btn-dest" class="status-btn px-4 py-2 bg-white text-gray-500 rounded-full text-xs font-semibold whitespace-nowrap shadow-sm border border-gray-100">ຮອດປາຍທາງແລ້ວ (0)</button>
+                    <button onclick="filterByStatus('ສຳເລັດ')" id="btn-done" class="status-btn px-4 py-2 bg-white text-gray-500 rounded-full text-xs font-semibold whitespace-nowrap shadow-sm border border-gray-100">ສຳເລັດ (0)</button>
+                </div>
+
+                <!-- List Area -->
+                <div id="logisticsList" class="space-y-4">
+                    <!-- List items will be injected -->
+                </div>
+            </section>
+
+            <!-- Tab: Profile -->
+            <section id="tab-profile" class="tab-content hidden-el">
+                <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100 text-center mb-6">
+                    <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-md">
+                                       <img src="data:image/jpeg;base64,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" alt="Logo" class="w-full h-full object-cover rounded-full">
+
+                    </div>
+                    <h2 id="userNameDisplay" class="text-xl font-bold text-gray-800">Loading...</h2>
+                    <p id="userPhoneDisplay" class="text-gray-400 text-sm mb-6">912XXXXX</p>
+                    <button onclick="openEditNameModal()" class="px-8 py-2.5 bg-blue-50 text-blue-600 rounded-full font-semibold text-sm hover:bg-blue-100 transition-colors">
+                        <i class="fas fa-edit mr-2"></i>ແກ້ໄຂຊື່
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <div onclick="openChangePassModal()" class="flex items-center justify-between p-5 bg-white rounded-3xl shadow-sm border border-gray-100 cursor-pointer">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center"><i class="fas fa-lock-open"></i></div>
+                            <span class="font-medium text-gray-700">ປ່ຽນລະຫັດຜ່ານ</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-300"></i>
+                    </div>
+                    <div onclick="confirmLogout()" class="flex items-center justify-between p-5 bg-white rounded-3xl shadow-sm border border-gray-100 cursor-pointer text-red-500">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center"><i class="fas fa-power-off"></i></div>
+                            <span class="font-medium">ອອກລະບົບ</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="fixed bottom-0 left-0 right-0 h-20 bg-white/90 backdrop-blur-md border-t border-gray-100 flex items-center justify-between px-6 z-50">
+            <button onclick="switchTab('home')" class="nav-item flex flex-col items-center gap-1 text-gray-400">
+                <i class="fas fa-house text-xl"></i>
+                <span class="text-[10px] font-medium">ໜ້າຫຼັກ</span>
+            </button>
+            <button onclick="switchTab('thailao')" class="nav-item flex flex-col items-center gap-1 text-gray-400">
+               <i class="fas fa-truck text-xl "></i>
+                <span class="text-[10px] font-medium">ໄທ-ລາວ</span>
+            </button>
+            <div class="relative -top-6">
+                <button onclick="window.open('https://wa.me/8562091255129?text=ສະບາຍດີ ແອັດ', '_blank')" class="w-16 h-16 bg-blue-600 rounded-full shadow-lg shadow-blue-200 flex items-center justify-center text-white border-4 border-white active:scale-90 transition-transform">
+                    <i class="fab fa-whatsapp text-2xl"></i>
+                </button>
+                <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-bold text-blue-600">24/7</span>
+            </div>
+            <button onclick="switchTab('chinalao')" class="nav-item flex flex-col items-center gap-1 text-gray-400">
+                <i class="fas fa-plane text-xl "></i>
+                <span class="text-[10px] font-medium">ຈີນ-ລາວ</span>
+            </button>
+            <button onclick="switchTab('profile')" class="nav-item flex flex-col items-center gap-1 text-gray-400">
+                <i class="fas fa-user text-xl"></i>
+                <span class="text-[10px] font-medium">ຕັ້ງຄ່າ</span>
+            </button>
+        </nav>
+    </div>
+
+ 
+    <!-- Modals -->
+    <div id="detailModal" class="fixed inset-0 z-[60] bg-black/60 flex items-end sm:items-center justify-center hidden-el p-0 sm:p-4">
+        <div class="bg-white w-full max-w-lg rounded-t-[2.5rem] sm:rounded-[2.5rem] max-h-[92vh] overflow-y-auto overflow-x-hidden shadow-2xl">
+            <div class="sticky top-0 bg-white p-6 pb-2 z-10 flex justify-between items-center border-b border-gray-50">
+                <h3 class="text-xl font-bold text-gray-800">ລາຍລະອຽດພັດສະດຸ</h3>
+                <button onclick="closeModal('detailModal')" class="w-10 h-10 flex items-center justify-center bg-gray-50 text-gray-400 rounded-full hover:bg-gray-100">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            <div id="detailBody" class="p-6 pt-4 space-y-6">
+                <!-- Detailed content injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Generic Input Modal -->
+    <div id="inputModal" class="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-6 hidden-el">
+        <div class="bg-white w-full max-w-sm rounded-[2rem] p-8 shadow-2xl">
+            <h3 id="modalTitle" class="text-xl font-bold mb-4">Title</h3>
+            <div id="modalContent" class="space-y-4"></div>
+            <div class="flex gap-3 mt-8">
+                <button onclick="closeModal('inputModal')" class="flex-1 py-4 bg-gray-50 text-gray-500 rounded-2xl font-bold">ຍົກເລີກ</button>
+                <button id="modalConfirmBtn" class="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg">ບັນທຶກ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div id="imgPreviewModal" class="fixed inset-0 z-[80] bg-black/95 flex items-center justify-center p-4 hidden-el">
+        <button onclick="closeModal('imgPreviewModal')" class="absolute top-8 right-8 text-white text-3xl opacity-70 hover:opacity-100">
+            <i class="fas fa-xmark"></i>
+        </button>
+        <img id="previewImgEl" src="" class="max-w-full max-h-full object-contain rounded-lg">
+    </div>
+
+
+   
+    <script src="script.js"></script>     
+
+</body>
+</html>

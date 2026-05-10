@@ -1107,3 +1107,26 @@ function highlightNav(index) {
         el.classList.add('text-blue-600');
     }
 }
+
+// POP UP EDIT
+function showStartupPopup() {
+            const popup = document.getElementById('startupPopup');
+            if (!popup) return;
+
+            popup.style.display = 'flex';
+
+            setTimeout(() => {
+                closeStartupPopup();
+            }, 7000);
+        }
+
+        function closeStartupPopup() {
+            const popup = document.getElementById('startupPopup');
+            if (popup) {
+                popup.style.display = 'none';
+            }
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(showStartupPopup, 500);
+        });

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ยืนยันรหัสผ่าน - Supabase</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Kanit', sans-serif; }
+    .modal-backdrop { background: rgba(8, 25, 55, .48); backdrop-filter: blur(4px); }
+    @keyframes popIn { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .pop-in { animation: popIn .18s ease-out; }
+  </style>
+</head>
+<body class="min-h-screen bg-white flex items-center justify-center p-4">
+  <main class="w-full max-w-md overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-[0_18px_60px_rgba(15,45,90,0.12)]">
+    <header class="bg-gradient-to-r from-[#082B60] to-[#1456A0] px-6 py-7 text-center text-white">
+      <div class="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/25 bg-white/10">
+        <i class="fa-solid fa-shield-halved text-3xl"></i>
+      </div>
+      <h1 class="text-2xl font-semibold">ยืนยันรหัสผ่าน</h1>
+      <p class="mt-1 text-sm text-blue-100">กรอกรหัสผ่านเพื่อดำเนินการต่อ</p>
+    </header>
+
+    <div class="flex items-center justify-between border-b border-blue-100 bg-blue-50/70 px-6 py-3 text-xs">
+      <span class="font-medium text-slate-500"><i class="fa-solid fa-server mr-1 text-blue-700"></i> สถานะ Supabase</span>
+      <span id="connectionStatus" class="font-semibold text-amber-600"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i> กำลังเชื่อมต่อ...</span>
+    </div>
+
+    <section class="p-6 sm:p-8">
+      <form id="updateForm" class="space-y-5" novalidate>
+        <!-- รับเบอร์จาก URL เท่านั้น ไม่แสดงบนหน้าจอ -->
+        <input type="hidden" id="phoneInput">
+        <div>
+          <label for="passwordInput" class="mb-2 block text-sm font-medium text-[#102F5F]">
+            <i class="fa-solid fa-key mr-1.5 text-blue-700"></i> รหัสผ่านยืนยันสิทธิ์
+          </label>
+          <div class="relative">
+            <input type="password" id="passwordInput" autocomplete="current-password" placeholder="กรอกรหัสผ่านยืนยัน" required
+              class="w-full rounded-xl border border-blue-200 bg-white px-4 py-4 pr-12 text-base text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-700 focus:ring-4 focus:ring-blue-100">
+            <button type="button" id="togglePassword" aria-label="แสดงหรือซ่อนรหัสผ่าน" class="absolute right-4 top-1/2 -translate-y-1/2 text-blue-700 hover:text-blue-950">
+              <i id="eyeIcon" class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          <p class="mt-2 text-xs text-slate-500">กรอกรหัสผ่านยืนยันให้ถูกต้อง</p>
+        </div>
+        <button type="submit" id="submitBtn" class="flex w-full items-center justify-center gap-2 rounded-xl bg-[#123F7A] py-3.5 font-semibold text-white shadow-lg shadow-blue-900/15 transition hover:bg-[#0B2F61] active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-60">
+          <i class="fa-solid fa-lock"></i><span>ยืนยันและรีเซ็ตรหัสผ่าน</span>
+        </button>
+      </form>
+    </section>
+  </main>
+
+  <!-- Popup แจ้งเตือน -->
+  <div id="popup" class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="popupTitle">
+    <div class="pop-in w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl">
+      <div id="popupIconWrap" class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+        <i id="popupIcon" class="fa-solid fa-circle-info text-2xl"></i>
+      </div>
+      <h2 id="popupTitle" class="text-xl font-semibold text-[#102F5F]">แจ้งเตือน</h2>
+      <p id="popupMessage" class="mt-2 whitespace-pre-line text-sm leading-6 text-slate-600"></p>
+      <button id="popupOk" type="button" class="mt-5 w-full rounded-xl bg-[#123F7A] px-4 py-3 font-medium text-white hover:bg-[#0B2F61]">ตกลง</button>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://ubipbzilvjxlpbpbmlhf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InViaXBiemlsdmp4bHBicGJtbGhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyNzkwMTEsImV4cCI6MjEwODg1NTAxMX0.571h8hPcnUg5AlBzhZt8pajfCece91AMIbFXwmZNL_w';
+    const REQUIRED_SECRET = '123456789ranya$$$';
+    let supabaseClient = null;
+    let closeAfterPopup = false;
+
+    window.addEventListener('load', async () => {
+      // เปิดหน้าแล้วให้เคอร์เซอร์อยู่ในช่องรหัสผ่านทันที
+      readPhoneFromUrl();
+      setTimeout(() => document.getElementById('passwordInput').focus(), 80);
+      initSupabase();
+    });
+
+    function readPhoneFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const rawPhone = params.get('phone') || '';
+      // ต้องเป็นตัวเลข 8 หลักครบถ้วน ไม่ตัดหรือแก้ไขค่าที่ผิดรูปแบบ
+      const phone = rawPhone.trim();
+      document.getElementById('phoneInput').value = /^\d{8}$/.test(phone) ? phone : '';
+    }
+
+    function initSupabase() {
+      const status = document.getElementById('connectionStatus');
+      try {
+        if (!window.supabase) throw new Error('โหลด Supabase SDK ไม่สำเร็จ');
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        supabaseClient.from('user').select('userid').limit(1).then(({ error }) => {
+          if (error) {
+            status.className = 'font-semibold text-rose-600';
+            status.innerHTML = '<i class="fa-solid fa-circle-xmark mr-1"></i> ตรวจสอบการเชื่อมต่อ';
+          } else {
+            status.className = 'font-semibold text-blue-700';
+            status.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> เชื่อมต่อเรียบร้อย';
+          }
+        }).catch(() => {
+          status.className = 'font-semibold text-rose-600';
+          status.textContent = 'เชื่อมต่อไม่สำเร็จ';
+        });
+      } catch (error) {
+        status.className = 'font-semibold text-rose-600';
+        status.textContent = 'ไม่สามารถเชื่อมต่อได้';
+      }
+    }
+
+    function showPopup(message, type = 'info', shouldClose = false) {
+      const popup = document.getElementById('popup');
+      const wrap = document.getElementById('popupIconWrap');
+      const icon = document.getElementById('popupIcon');
+      closeAfterPopup = shouldClose;
+      document.getElementById('popupTitle').textContent = type === 'success' ? 'สำเร็จ' : type === 'error' ? 'ไม่สำเร็จ' : 'แจ้งเตือน';
+      document.getElementById('popupMessage').textContent = message;
+      wrap.className = 'mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full ' +
+        (type === 'success' ? 'bg-blue-50 text-blue-700' : type === 'error' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600');
+      icon.className = 'fa-solid text-2xl ' + (type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-circle-xmark' : 'fa-triangle-exclamation');
+      popup.classList.remove('hidden');
+      popup.classList.add('flex');
+      document.getElementById('popupOk').focus();
+    }
+
+    function closePopup() {
+      document.getElementById('popup').classList.add('hidden');
+      document.getElementById('popup').classList.remove('flex');
+      if (closeAfterPopup) closeCurrentTab();
+    }
+
+    function closeCurrentTab() {
+      // เบราว์เซอร์อาจไม่อนุญาตให้หน้าเว็บปิดแท็บที่ผู้ใช้เปิดเอง
+      window.close();
+      setTimeout(() => {
+        if (!window.closed) {
+          showPopup('รีเซ็ตรหัสผ่านสำเร็จแล้ว กรุณาปิดแท็บนี้ด้วยตนเอง', 'success', false);
+        }
+      }, 250);
+    }
+
+    document.getElementById('popupOk').addEventListener('click', closePopup);
+    document.getElementById('togglePassword').addEventListener('click', () => {
+      const input = document.getElementById('passwordInput');
+      const icon = document.getElementById('eyeIcon');
+      input.type = input.type === 'password' ? 'text' : 'password';
+      icon.className = input.type === 'password' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
+      input.focus();
+    });
+
+    function getFormattedDateTime() {
+      const now = new Date();
+      const pad = value => String(value).padStart(2, '0');
+      return `${now.getFullYear()}/${pad(now.getMonth() + 1)}/${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    }
+
+    document.getElementById('updateForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const phone = document.getElementById('phoneInput').value;
+      const secret = document.getElementById('passwordInput').value;
+      const button = document.getElementById('submitBtn');
+
+      if (!phone) {
+        showPopup('ไม่พบเบอร์โทรศัพท์ 8 หลักที่ถูกต้องใน URL กรุณาตรวจสอบลิงก์อีกครั้ง', 'error');
+        return;
+      }
+      if (secret !== REQUIRED_SECRET) {
+        showPopup('รหัสผ่านยืนยันไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง', 'error');
+        document.getElementById('passwordInput').focus();
+        document.getElementById('passwordInput').select();
+        return;
+      }
+      if (!supabaseClient) {
+        showPopup('ยังไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาลองใหม่อีกครั้ง', 'error');
+        return;
+      }
+
+      button.disabled = true;
+      button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>กำลังตรวจสอบและรีเซ็ต...</span>';
+      try {
+        // ตรวจสอบก่อนว่าเบอร์จาก URL มี userid ตรงกันในตาราง user จริง
+        const { data: matchedUser, error: checkError } = await supabaseClient
+          .from('user').select('userid').eq('userid', phone).maybeSingle();
+        if (checkError) throw checkError;
+        if (!matchedUser) {
+          showPopup('ไม่พบ userid ที่ตรงกับเบอร์โทรศัพท์จาก URL (' + phone + ') จึงไม่สามารถรีเซ็ตรหัสผ่านได้', 'error');
+          return;
+        }
+
+        const formattedDate = getFormattedDateTime();
+        const { data, error } = await supabaseClient.from('user').update({
+          password: '1234',
+          date: formattedDate
+        }).eq('userid', matchedUser.userid).select('userid');
+        if (error) throw error;
+        if (!data || data.length === 0) {
+          showPopup('ตรวจสอบ userid พบ แต่ไม่สามารถอัปเดตข้อมูลได้ กรุณาลองใหม่', 'error');
+          return;
+        }
+
+        // แจ้งผลสำเร็จ จากนั้นพยายามปิดแท็บทันที
+        showPopup('รีเซ็ตรหัสผ่านสำเร็จ ระบบได้อัปเดตข้อมูลเรียบร้อยแล้ว', 'success', true);
+        setTimeout(closeCurrentTab, 350);
+      } catch (error) {
+        console.error('Reset password error:', error);
+        showPopup('เกิดข้อผิดพลาด: ' + (error.message || 'ไม่สามารถดำเนินการได้'), 'error');
+      } finally {
+        button.disabled = false;
+        button.innerHTML = '<i class="fa-solid fa-lock"></i><span>ยืนยันและรีเซ็ตรหัสผ่าน</span>';
+      }
+    });
+  </script>
+</body>
+</html>
